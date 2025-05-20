@@ -1,0 +1,52 @@
+name: Auto Commit & Push
+
+on:
+  push:
+    branches: [main]
+
+  schedule:
+    - cron: "0 */5 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  auto_commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Setup Git User
+        uses: fregante/setup-git-user@v1
+        with:
+          name: nowackmst
+          email: nowackmst@gmail.com
+
+      - name: Update Log File
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "Pembaruan terakhir: $TIMESTAMP" >> update.log
+          echo "Log diperbarui pada: $TIMESTAMP"
+
+      - name: Commit Changes (if any)
+        run: |
+          # Daftar pesan commit acak dengan emoji
+          pesan_commit=("Update otomatis 🚀" "Pembaruan rutin 🔄" "Auto-refresh 🔥" "Optimisasi data 📊" "Log diperbarui 📝" "Commit berkala ⏳")
+          pesan_acak=${pesan_commit[$RANDOM % ${#pesan_commit[@]}]}
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          git add update.log
+          git diff --cached --quiet && echo "✅ Tidak ada perubahan untuk dikomit." || git commit -m "$pesan_acak | $TIMESTAMP"
+
+      - name: Push Changes to GitHub
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          branch: main
+          github_token: ${{ secrets.GITHUB_TOKEN }}
